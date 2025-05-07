@@ -15,15 +15,9 @@ const client = new Client({
     },
 })
 
-const insertUserQuery = `
-    insert into users (name, email)
-    values('john does', 'john@example.com')
-    returning *;
-`
-
 client.connect()
-    .then(() => console.log("connected to database"))
-    .catch((err) => console.error("connection error", err.stack))
+    .then(() => console.log("Connected to database"))
+    .catch((err) => console.error("Connection error", err.stack))
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -32,21 +26,22 @@ app.use(express.static(path.join(__dirname, "public")))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+// Serve the users.html file on root
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "views", "index.html"))
+    res.sendFile(path.join(__dirname, "views", "users.html"))
 })
-app.get("/users", (req, res) => { 
-    const query = "select * from users order by id asc"
+
+// API route to fetch users
+app.get("/users", (req, res) => {
+    const query = "SELECT * FROM users ORDER BY id ASC"
     client.query(query)
-        .then(result => { 
-            res.jsong(result.rows)
-        })
-        .catch(er => {
-            console.errror("error fetching users", er.stack)
+        .then(result => res.json(result.rows))
+        .catch(err => {
+            console.error("Error fetching users", err.stack)
             res.status(500).send("Error fetching users")
         })
 })
 
-app.listen(PORT, () => () => {
+app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`)
 })
